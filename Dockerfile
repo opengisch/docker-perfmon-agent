@@ -1,7 +1,7 @@
 # inspired by https://github.com/hauptmedia/docker-jmeter  and
 # https://github.com/hhcordero/docker-jmeter-server/blob/master/Dockerfile
 # https://github.com/justb4/docker-jmeter/blob/master/Dockerfile
-FROM alpine:3.12
+FROM openjdk:8-alpine
 
 MAINTAINER Marco Bernasocchi<marco@opengis.ch>
 
@@ -14,13 +14,10 @@ ENV DOWNLOAD_URL  https://github.com/undera/perfmon-agent/releases/download/${AG
 ARG TZ="Europe/Amsterdam"
 RUN apk update \
 	&& apk upgrade \
-	&& apk add ca-certificates \
-	&& update-ca-certificates \
-	&& apk add --update openjdk8-jre tzdata curl unzip bash \
-	&& apk add --no-cache nss \
+	&& apk add --update tzdata curl unzip \
 	&& rm -rf /var/cache/apk/* \
 	&& mkdir -p /tmp/dependencies  \
-	&& curl -L --silent ${DOWNLOAD_URL} >  /tmp/dependencies/agent.zip \
+	&& curl -L --silent ${DOWNLOAD_URL} --output /tmp/dependencies/agent.zip \
 	&& mkdir -p /opt/  \
 	&& unzip /tmp/dependencies/agent.zip -d /tmp/dependencies/ \
 	&& mv /tmp/dependencies/ServerAgent-${AGENT_VERSION}/* /opt/ \
