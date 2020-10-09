@@ -6,13 +6,13 @@ FROM alpine:3.12
 MAINTAINER Marco Bernasocchi<marco@opengis.ch>
 
 ARG AGENT_VERSION="2.2.3"
-ENV	DOWNLOAD_URL  https://github.com/undera/perfmon-agent/releases/download/${AGENT_VERSION}/ServerAgent-${AGENT_VERSION}.zip
+ENV DOWNLOAD_URL  https://github.com/undera/perfmon-agent/releases/download/${AGENT_VERSION}/ServerAgent-${AGENT_VERSION}.zip
 
 # Install extra packages
 # See https://github.com/gliderlabs/docker-alpine/issues/136#issuecomment-272703023
 # Change TimeZone TODO: TZ still is not set!
 ARG TZ="Europe/Amsterdam"
-RUN    apk update \
+RUN apk update \
 	&& apk upgrade \
 	&& apk add ca-certificates \
 	&& update-ca-certificates \
@@ -21,11 +21,18 @@ RUN    apk update \
 	&& rm -rf /var/cache/apk/* \
 	&& mkdir -p /tmp/dependencies  \
 	&& curl -L --silent ${DOWNLOAD_URL} >  /tmp/dependencies/agent.zip \
-	&& mkdir -p /opt  \
-	&& unzip /tmp/dependencies/agent.zip -d /opt  \
+	&& mkdir -p /opt/  \
+	&& unzip /tmp/dependencies/agent.zip -d /tmp/dependencies/ \
+	&& mv /tmp/dependencies/ServerAgent-${AGENT_VERSION}/* /opt/ \
+	&& chmod +x /opt/*.sh \
 	&& rm -rf /tmp/dependencies
+RUN apk add --no-cache tini # Tini is now available at /sbin/tini
 
 EXPOSE 4444
 
-WORKDIR	/opt/ServerAgent-${AGENT_VERSION}
-CMD ./startAgent.sh --interval 5
+WORKDIR /opt/
+
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["/opt/startAgent.sh", "--interval", "5"]
+
